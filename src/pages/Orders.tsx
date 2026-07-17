@@ -21,6 +21,7 @@ import { mockOrders } from '../utils/ordersData';
 import type { Order, ProductItem } from '../utils/ordersData';
 import Badge from '../components/common/Badge';
 import FilterSelect from '../components/common/FilterSelect';
+import DateRangeSelector from '../components/common/DateRangeSelector';
 
 // Product Icon Renderer
 const ProductThumb = ({ type }: { type: ProductItem['iconName'] }) => {
@@ -270,12 +271,7 @@ export default function OrdersPage() {
 
         {/* Right: Date Picker, Selects & filter trigger */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Date Selector */}
-          <button className="flex items-center gap-2 px-4 h-11 border border-slate-100 bg-white text-[13px] font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-            <Calendar className="w-4.5 h-4.5 text-slate-400" />
-            <span>May 16, 2024 - May 22, 2024</span>
-            <ChevronDown className="w-4.5 h-4.5 text-slate-400" />
-          </button>
+          <DateRangeSelector />
 
           {/* Payment Method */}
           <FilterSelect 

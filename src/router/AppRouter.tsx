@@ -17,14 +17,29 @@ import VendorProfilePage from '../pages/VendorProfile';
 
 import LiveSetupPage from '../pages/LiveSetup';
 import LiveSessionPage from '../pages/LiveSession';
+import LoginPage from '../pages/Login';
+import SignupPage from '../pages/Signup';
+import ForgotPasswordPage from '../pages/ForgotPassword';
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        
         {/* Main layout wrapper routes */}
         <Route 
           path="/" 
+          element={
+            <MainLayout>
+              <DashboardPage />
+            </MainLayout>
+          } 
+        />
+        <Route 
+          path="/dashboard" 
           element={
             <MainLayout>
               <DashboardPage />

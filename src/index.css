@@ -25,6 +25,19 @@ body {
   background-color: #F8F9FA;
 }
 
+@media (min-width: 1024px) {
+  html {
+    zoom: 0.8;
+    height: 125vh;
+  }
+  body {
+    height: 125vh;
+  }
+  .h-screen {
+    height: 125vh !important;
+  }
+}
+
 /* Custom scrollbar for a premium feel */
 ::-webkit-scrollbar {
   width: 6px;
@@ -39,4 +52,13 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+
+/* Utility to hide scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

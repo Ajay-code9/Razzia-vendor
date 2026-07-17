@@ -25,7 +25,7 @@ export default function StatCard({
     <motion.div 
       whileHover={{ scale: 1.01, y: -2 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="flex-1 min-w-[240px] bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:shadow-widget transition-shadow duration-200 cursor-default"
+      className="flex-1 min-w-[180px] bg-white border border-slate-100 p-5 rounded-2xl shadow-sm flex items-start gap-4 hover:shadow-widget transition-shadow duration-200 cursor-default"
     >
       {/* Icon Circle */}
       <div 

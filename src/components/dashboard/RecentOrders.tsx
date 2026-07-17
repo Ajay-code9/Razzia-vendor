@@ -55,22 +55,22 @@ export default function RecentOrders() {
 
       {/* Table responsive container */}
       <div className="overflow-x-auto w-full">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse min-w-[580px]">
           <thead>
             <tr className="border-b border-slate-100">
-              <th className="pb-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
+              <th className="pb-3 pr-4 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                 Order ID
               </th>
-              <th className="pb-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
+              <th className="pb-3 pr-4 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                 Customer
               </th>
-              <th className="pb-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
+              <th className="pb-3 pr-4 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                 Amount
               </th>
-              <th className="pb-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
+              <th className="pb-3 pr-4 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                 Status
               </th>
-              <th className="pb-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
+              <th className="pb-3 pr-4 text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                 Date
               </th>
               <th className="pb-3 text-[12px] font-bold text-slate-400 uppercase tracking-wider text-right">
@@ -81,21 +81,21 @@ export default function RecentOrders() {
           <tbody className="divide-y divide-slate-50">
             {orders.map((order) => (
               <tr key={order.id} className="group hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 text-[13px] font-bold text-slate-850">
+                <td className="py-4 pr-4 text-[13px] font-bold text-slate-850">
                   {order.id}
                 </td>
-                <td className="py-4 text-[13px] font-semibold text-slate-700">
+                <td className="py-4 pr-4 text-[13px] font-semibold text-slate-700">
                   {order.customer}
                 </td>
-                <td className="py-4 text-[13px] font-extrabold text-slate-850">
+                <td className="py-4 pr-4 text-[13px] font-extrabold text-slate-850">
                   {order.amount}
                 </td>
-                <td className="py-4 text-[13px]">
+                <td className="py-4 pr-4 text-[13px]">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${getStatusStyle(order.status)}`}>
                     {order.status}
                   </span>
                 </td>
-                <td className="py-4 text-[13px] font-semibold text-slate-400">
+                <td className="py-4 pr-4 text-[13px] font-semibold text-slate-400">
                   {order.date}
                 </td>
                 <td className="py-4 text-[13px] text-right">

@@ -38,6 +38,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../context/ToastContext';
 import type { Product } from '../utils/productsData';
 import { loadProducts } from '../utils/productsData';
+import DateRangeSelector from '../components/common/DateRangeSelector';
 
 // TypeScript interfaces
 interface KPICardProps {
@@ -233,17 +234,7 @@ export default function AnalyticsPage() {
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Date Picker trigger */}
-          <div className="relative">
-            <button 
-              onClick={() => showToast('Toggle Calendar selector dialog', 'info')}
-              className="flex items-center gap-2.5 px-4 h-11 border border-slate-100 bg-white text-[13px] font-bold text-slate-655 rounded-xl hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
-            >
-              <Calendar className="w-4.5 h-4.5 text-slate-400" />
-              <span>{dateRangeText}</span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
-            </button>
-          </div>
+          <DateRangeSelector />
 
           {/* Setup Simulator filter drawer */}
           <button 
