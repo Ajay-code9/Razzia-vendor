@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, KeyRound, Radio, Package, BarChart2, CheckCircle2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,13 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.add('auth-layout');
+    return () => {
+      document.documentElement.classList.remove('auth-layout');
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +46,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="h-screen w-full bg-white flex flex-col lg:flex-row font-sans overflow-hidden relative">
+    <div className="min-h-screen w-full bg-white flex flex-col lg:flex-row font-sans overflow-y-auto relative">
       
       {/* Toast Notification */}
       <AnimatePresence>
@@ -255,13 +262,13 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Right Section (52%) */}
-      <div className="w-full lg:w-[52%] flex flex-col items-center justify-center p-6 sm:p-12 bg-[#F8FAFC]/50 relative overflow-hidden">
+      <div className="w-full lg:w-[52%] flex flex-col items-center justify-center p-6 sm:p-12 bg-[#F8FAFC]/50 relative min-h-screen py-8 lg:py-12">
          
          <motion.div 
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="w-full max-w-[480px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.06)] border border-slate-100 p-8 sm:p-12 relative z-10"
+            className="w-full max-w-[480px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(15,23,42,0.06)] border border-slate-100 p-8 sm:p-12 relative z-10 my-4 lg:my-0"
          >
            
            <div className="flex flex-col items-center text-center mb-8">

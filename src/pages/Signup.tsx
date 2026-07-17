@@ -1,450 +1,586 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Radio, Package, BarChart2, User, Store, Phone, UserPlus } from 'lucide-react';
-import { motion } from 'framer-motion';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import Checkbox from '../components/common/Checkbox';
+import { ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Form fields state
+  // Form Fields State
   const [fullName, setFullName] = useState('');
-  const [businessName, setBusinessName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [storeCategory, setStoreCategory] = useState('fashion');
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  // Errors state
+  // Errors State
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateForm = () => {
+  const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
-
     if (!fullName.trim()) newErrors.fullName = 'Required';
-    if (!businessName.trim()) newErrors.businessName = 'Required';
-    
     if (!email.trim()) {
       newErrors.email = 'Required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Invalid email';
     }
-
     if (!phone.trim()) {
       newErrors.phone = 'Required';
-    } else if (!/^\+?[0-9]{10,14}$/.test(phone.replace(/[\s-]/g, ''))) {
-      newErrors.phone = 'Invalid phone';
     }
-
     if (!password) {
       newErrors.password = 'Required';
     } else if (password.length < 8) {
-      newErrors.password = 'Min 8 chars';
-    }
-
-    if (!confirmPassword) {
-      newErrors.confirmPassword = 'Required';
-    } else if (confirmPassword !== password) {
-      newErrors.confirmPassword = 'Mismatch';
-    }
-
-    if (!agreeTerms) {
-      newErrors.agreeTerms = 'You must agree to continue';
+      newErrors.password = 'Min 8 characters';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    // Mock signup delay
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/login');
-    }, 1000);
+  const validateStep2 = () => {
+    const newErrors: Record<string, string> = {};
+    if (!businessName.trim()) newErrors.businessName = 'Required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  const handleNext = () => {
+    if (step === 1 && validateStep1()) {
+      setStep(2);
+    }
+  };
+
+  const handlePrev = () => {
+    setStep(1);
+  };
+
+  const handleSignupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep2()) return;
+    if (!agreeTerms) {
+      setErrors({ agreeTerms: 'You must agree to continue' });
+      return;
+    }
+
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsSuccess(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 1800);
+    }, 1500);
+  };
+
+  // ── Step 1 progressive gradient ──────────────────────────────────────
+  // 4 fields, each 25%. Right-side color smoothly deepens toward #FE060D
+  const step1Completion = useMemo(() => {
+    let pct = 0;
+    if (fullName.trim()) pct += 25;
+    if (email.trim() && /\S+@\S+\.\S+/.test(email)) pct += 25;
+    if (phone.trim()) pct += 25;
+    if (password.length >= 8) pct += 25;
+    return pct;
+  }, [fullName, email, phone, password]);
+
+  const step1BtnGradient = useMemo(() => {
+    const t = step1Completion / 100;
+    const r = Math.round(255 + (254 - 255) * t);
+    const g = Math.round(236 - 230 * t);
+    const b = Math.round(236 - 223 * t);
+    return `linear-gradient(to right, #FE060D, rgb(${r}, ${g}, ${b}))`;
+  }, [step1Completion]);
+
+  const step1BtnShadow = useMemo(() => {
+    const alpha = 0.12 + (step1Completion / 100) * 0.16;
+    const spread = 20 + (step1Completion / 100) * 12;
+    return `0 8px ${spread}px rgba(254, 6, 13, ${alpha.toFixed(2)})`;
+  }, [step1Completion]);
+
+  // ── Step 2 progressive gradient ──────────────────────────────────────
+  // 2 conditions: businessName filled + agreeTerms checked → each 50%
+  const step2Completion = useMemo(() => {
+    let pct = 0;
+    if (businessName.trim()) pct += 50;
+    if (agreeTerms) pct += 50;
+    return pct;
+  }, [businessName, agreeTerms]);
+
+  const step2BtnGradient = useMemo(() => {
+    const t = step2Completion / 100;
+    const r = Math.round(255 + (254 - 255) * t);
+    const g = Math.round(236 - 230 * t);
+    const b = Math.round(236 - 223 * t);
+    return `linear-gradient(to right, #FE060D, rgb(${r}, ${g}, ${b}))`;
+  }, [step2Completion]);
+
+  const step2BtnShadow = useMemo(() => {
+    const alpha = 0.12 + (step2Completion / 100) * 0.16;
+    const spread = 20 + (step2Completion / 100) * 12;
+    return `0 8px ${spread}px rgba(254, 6, 13, ${alpha.toFixed(2)})`;
+  }, [step2Completion]);
+
   return (
-    <div className="h-screen w-full bg-white flex flex-col lg:flex-row font-sans overflow-hidden">
+    <div className="min-h-screen w-full bg-[#FCFDFE] text-slate-800 flex flex-col lg:flex-row font-sans overflow-hidden relative select-none">
       
-      {/* Left Section (48%) */}
-      <div className="hidden lg:flex w-[48%] flex-col relative pt-10 px-12 xl:px-16 pb-6 bg-white border-r border-slate-50 overflow-hidden">
-        {/* Animated Mesh Gradients in Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.15, 1],
-              x: [0, 30, 0],
-              y: [0, -20, 0]
-            }}
-            transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
-            className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-brand/5 rounded-full blur-3xl opacity-60" 
-          />
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              x: [0, -40, 0],
-              y: [0, 30, 0]
-            }}
-            transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
-            className="absolute bottom-[-10%] left-[-15%] w-[600px] h-[600px] bg-red-50/50 rounded-full blur-3xl opacity-70" 
-          />
+      {/* Background Radial Glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            x: [0, -30, 0],
+            y: [0, 40, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 22, ease: "easeInOut" }}
+          className="absolute -top-[10%] -left-[10%] w-[600px] h-[600px] bg-gradient-to-br from-brand/8 to-orange-50/20 rounded-full blur-[100px] opacity-75" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.15, 1],
+            x: [0, 60, 0],
+            y: [0, -40, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 26, ease: "easeInOut" }}
+          className="absolute -bottom-[20%] -right-[15%] w-[700px] h-[700px] bg-gradient-to-tr from-brand/6 to-rose-50/20 rounded-full blur-[110px] opacity-60" 
+        />
+      </div>
+
+      {/* Left Column — Desktop Only: "Launch Your Store in Minutes" */}
+      <div className="hidden lg:flex w-[46%] flex-col justify-between relative pt-10 px-12 xl:px-16 pb-8 overflow-hidden z-10">
+
+        {/* Rich layered background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-rose-50/30 to-white pointer-events-none" />
+        <div className="absolute -top-10 -left-10 w-[400px] h-[400px] bg-gradient-to-br from-brand/8 to-transparent rounded-full blur-[90px] pointer-events-none" />
+        <div className="absolute -bottom-10 -right-10 w-[350px] h-[350px] bg-gradient-to-tl from-brand/6 to-transparent rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(254,6,13,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(254,6,13,0.02)_1px,transparent_1px)] bg-[size:44px_44px] pointer-events-none" />
+
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-2.5">
+          <img src="/logo.svg" alt="Razzia" className="h-8.5 w-auto object-contain" />
         </div>
 
-        <div className="relative z-10 flex flex-col h-full justify-between">
-          {/* Header/Logo */}
-          <div className="flex items-center gap-2 select-none">
-            <img src="/logo.svg" alt="Razzia" className="h-8.5 w-auto object-contain" />
-          </div>
+        {/* Content */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center py-3">
 
-          {/* Heading */}
-          <div className="max-w-md my-3 text-left">
-            <h1 className="text-[36px] xl:text-[44px] font-black tracking-tight text-slate-900 leading-[1.1] mb-3">
-              Sell. Stream. <span className="text-brand">Grow.</span>
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.08 }}
+            className="mb-6"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand/8 border border-brand/15 mb-4">
+              <span className="text-[13px]">🚀</span>
+              <span className="text-[11px] font-black text-brand tracking-wider uppercase">Go Live in Under 2 Minutes</span>
+            </div>
+            <h1 className="text-[34px] xl:text-[41px] font-black tracking-tight leading-[1.08] text-slate-900 mb-3">
+              Launch Your Store.<br />
+              <span className="bg-gradient-to-r from-brand via-red-500 to-orange-400 bg-clip-text text-transparent">Start Earning Today.</span>
             </h1>
-            <p className="text-[14.5px] text-slate-500 font-medium leading-relaxed">
-              Join thousands of vendors who are growing their business with Razzia.
+            <p className="text-[13px] text-slate-500 font-medium leading-relaxed max-w-[290px]">
+              Three simple steps. One powerful platform. Your store goes live in minutes.
             </p>
-          </div>
+          </motion.div>
 
-          {/* Dashboard Illustration Mock with Interactive Elements */}
-          <div className="relative flex-1 min-h-[200px] max-h-[300px] w-full mb-4 flex items-center justify-center">
-            
-            {/* Main Mockup Frame */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="w-full max-w-[360px] bg-white rounded-xl shadow-[0_20px_50px_rgba(15,23,42,0.08)] border border-slate-100 overflow-hidden relative z-10 hover:shadow-[0_25px_60px_rgba(15,23,42,0.12)] transition-shadow duration-300"
-            >
-              {/* Header */}
-              <div className="h-9 border-b border-slate-50 flex items-center px-3 gap-2 bg-slate-50/50">
-                <div className="w-4.5 h-4.5 bg-brand rounded flex items-center justify-center shrink-0">
-                  <span className="text-[8px] font-black text-white leading-none">R</span>
+          {/* 3-Step Journey Cards */}
+          <div className="space-y-2.5 mb-5">
+            {[
+              {
+                num: '01', icon: '👤', title: 'Create Account',
+                desc: 'Secure your login & merchant profile',
+                accent: 'from-brand/10 to-rose-50', active: true,
+              },
+              {
+                num: '02', icon: '🏪', title: 'Build Your Store',
+                desc: 'Pick a name, category & upload products',
+                accent: 'from-orange-50 to-amber-50', active: false,
+              },
+              {
+                num: '03', icon: '💰', title: 'Start Selling',
+                desc: 'Go live and earn from day one',
+                accent: 'from-emerald-50 to-green-50', active: false,
+                badge: '$240 avg. first day',
+              },
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: -18 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.12 + idx * 0.1 }}
+                className={`flex items-center gap-3.5 px-3.5 py-3 rounded-2xl border transition-all ${
+                  item.active
+                    ? 'bg-white border-brand/20 shadow-[0_8px_25px_rgba(254,6,13,0.06)]'
+                    : 'bg-white/50 border-slate-100/80'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.accent} flex items-center justify-center text-[20px] shrink-0 border border-white shadow-sm`}>
+                  {item.icon}
                 </div>
-                <div className="h-1.5 w-16 bg-slate-200 rounded-full" />
-                <div className="ml-auto flex gap-1.5">
-                  <div className="w-3.5 h-3.5 rounded bg-slate-200" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-slate-200" />
-                </div>
-              </div>
-              {/* Content */}
-              <div className="p-4 text-left">
-                <div className="grid grid-cols-3 gap-2.5 mb-4">
-                  {['Total Sales', 'Total Orders', 'Live'].map((t, i) => (
-                    <div key={i} className="p-2 border border-slate-50 rounded-lg bg-white shadow-xs">
-                      <div className="h-1.5 w-10 bg-slate-100 rounded-full mb-2" />
-                      <div className="h-3 w-14 bg-slate-800 rounded-full mb-1" />
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                        <div className="h-1.5 w-8 bg-emerald-100/50 rounded-full" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-4">
-                  {/* Chart Mock with Line Draw Animation */}
-                  <div className="flex-1 border border-slate-50 rounded-lg p-2.5 bg-white shadow-xs">
-                    <div className="h-1.5 w-16 bg-slate-200 rounded-full mb-3" />
-                    <div className="h-14 w-full relative">
-                      <svg viewBox="0 0 100 40" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-                        <motion.path 
-                          initial={{ pathLength: 0 }}
-                          animate={{ pathLength: 1 }}
-                          transition={{ duration: 1.5, ease: "easeInOut" }}
-                          d="M0,35 Q10,25 20,30 T40,15 T60,20 T80,5 T100,10" 
-                          fill="none" 
-                          stroke="#FE060D" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                        />
-                        <motion.path 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 0.1 }}
-                          transition={{ delay: 1, duration: 0.5 }}
-                          d="M0,35 Q10,25 20,30 T40,15 T60,20 T80,5 T100,10 L100,40 L0,40 Z" 
-                          fill="url(#grad-signup-opt)" 
-                        />
-                        <defs>
-                          <linearGradient id="grad-signup-opt" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#FE060D" />
-                            <stop offset="100%" stopColor="#FE060D" stopOpacity="0" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[9.5px] font-black text-brand/60 tracking-widest">STEP {item.num}</span>
+                    {item.active && (
+                      <span className="text-[8.5px] font-black bg-brand text-white px-1.5 py-0.5 rounded-full tracking-wide">START HERE</span>
+                    )}
                   </div>
+                  <div className="text-[13px] font-black text-slate-900 leading-tight">{item.title}</div>
+                  <div className="text-[11px] text-slate-400 font-semibold">{item.desc}</div>
                 </div>
-              </div>
-            </motion.div>
-
-            {/* Floating Red R-Shopping Bag */}
-            <motion.div 
-              animate={{ y: [0, -10, 0], rotate: [-6, -2, -6] }}
-              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
-              className="absolute -bottom-2 -left-6 w-20 h-24 bg-brand rounded-xl shadow-[0_15px_30px_rgba(254,6,13,0.25)] flex flex-col items-center justify-center z-20 cursor-default"
-              style={{ borderRadius: '12px 12px 2px 2px' }}
-            >
-              <div className="absolute -top-3 w-7 h-7 border-4 border-brand-light rounded-full border-b-0" />
-              <div className="text-white font-black text-2xl tracking-tighter select-none">R</div>
-            </motion.div>
-
-            {/* Floating Yellow Boxes */}
-            <motion.div 
-              animate={{ y: [0, 8, 0], rotate: [4, 8, 4] }}
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-              className="absolute -right-3 bottom-6 flex flex-col gap-1 z-20"
-            >
-              <div className="w-12 h-9 bg-amber-200 rounded shadow-md border border-amber-300 flex items-center justify-center translate-x-2">
-                 <div className="text-amber-800/40 font-bold text-[10px]">R</div>
-              </div>
-              <div className="flex gap-1">
-                <div className="w-12 h-9 bg-amber-300 rounded shadow-md border border-amber-400 flex items-center justify-center">
-                   <div className="text-amber-800/40 font-bold text-[10px]">R</div>
-                </div>
-                <div className="w-12 h-9 bg-amber-200 rounded shadow-md border border-amber-300 flex items-center justify-center">
-                   <div className="text-amber-800/40 font-bold text-[10px]">R</div>
-                </div>
-              </div>
-            </motion.div>
-
+                {item.badge ? (
+                  <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-xl text-center shrink-0 leading-tight">
+                    {item.badge}
+                  </div>
+                ) : item.active ? (
+                  <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center shrink-0 shadow-[0_4px_10px_rgba(254,6,13,0.25)]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  </div>
+                ) : (
+                  <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />
+                )}
+              </motion.div>
+            ))}
           </div>
 
-          {/* Interactive Feature Cards */}
-          <div className="grid grid-cols-3 gap-3">
-            <motion.div 
-              whileHover={{ scale: 1.03, y: -2 }}
-              className="bg-white p-3 rounded-xl border border-slate-100 flex flex-col items-center text-center shadow-xs cursor-default"
-            >
-              <div className="relative w-8 h-8 rounded-full bg-red-50 flex items-center justify-center mb-2 text-brand">
-                <span className="absolute inset-0 rounded-full border border-brand/35 animate-ping opacity-75" />
-                <Radio className="w-4 h-4" />
+          {/* Stats row */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="grid grid-cols-3 gap-2.5 mb-4"
+          >
+            {[
+              { value: '12K+', label: 'Active Stores', color: 'text-slate-900' },
+              { value: '$2.1M', label: 'Daily GMV', color: 'text-brand' },
+              { value: '4.9★', label: 'Seller Rating', color: 'text-slate-900' },
+            ].map((stat, i) => (
+              <div key={i} className="bg-white/70 border border-slate-100 rounded-2xl p-3 text-center">
+                <div className={`text-[17px] font-black ${stat.color} leading-tight`}>{stat.value}</div>
+                <div className="text-[9.5px] font-bold text-slate-400 mt-0.5">{stat.label}</div>
               </div>
-              <h3 className="text-[11.5px] font-bold text-slate-800 mb-0.5">Live Commerce</h3>
-              <p className="text-[10px] text-slate-400 font-semibold leading-tight">Go live & sell instantly.</p>
-            </motion.div>
+            ))}
+          </motion.div>
 
-            <motion.div 
-              whileHover={{ scale: 1.03, y: -2 }}
-              className="bg-white p-3 rounded-xl border border-slate-100 flex flex-col items-center text-center shadow-xs cursor-default"
-            >
-              <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center mb-2 text-brand">
-                <Package className="w-4 h-4" />
-              </div>
-              <h3 className="text-[11.5px] font-bold text-slate-800 mb-0.5">Orders</h3>
-              <p className="text-[10px] text-slate-400 font-semibold leading-tight">Easy returns & delivery.</p>
-            </motion.div>
+          {/* Verified Seller floating card */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: [0, -4, 0] }}
+            transition={{ opacity: { delay: 0.55, duration: 0.4 }, y: { repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.6 } }}
+            className="bg-gradient-to-r from-brand/8 via-rose-50/60 to-white border border-brand/15 rounded-2xl p-3.5 flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center text-[16px] font-black shrink-0 shadow-[0_6px_16px_rgba(254,6,13,0.28)]">✓</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[12.5px] font-black text-slate-900 leading-tight">Become a Verified Seller</div>
+              <div className="text-[10.5px] text-slate-500 font-semibold">Unlock priority placement & trust badge</div>
+            </div>
+            <div className="text-brand font-black text-[18px] shrink-0 opacity-60">→</div>
+          </motion.div>
+        </div>
 
-            <motion.div 
-              whileHover={{ scale: 1.03, y: -2 }}
-              className="bg-white p-3 rounded-xl border border-slate-100 flex flex-col items-center text-center shadow-xs cursor-default"
-            >
-              <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center mb-2 text-brand">
-                <BarChart2 className="w-4 h-4" />
-              </div>
-              <h3 className="text-[11.5px] font-bold text-slate-800 mb-0.5">Analytics</h3>
-              <p className="text-[10px] text-slate-400 font-semibold leading-tight">Track store performance.</p>
-            </motion.div>
-          </div>
-          
-          {/* Footer */}
-          <div className="mt-4 pt-3 border-t border-slate-100 text-left">
-             <p className="text-[11px] font-semibold text-slate-400">
-               &copy; 2026 Razzia. All rights reserved.
-             </p>
-          </div>
+        {/* Footer */}
+        <div className="relative z-10 text-[11px] font-semibold text-slate-400 tracking-wide">
+          &copy; 2026 RAZZIA MARKETPLACE INC. ALL RIGHTS RESERVED.
         </div>
       </div>
 
-      {/* Right Section (52%) */}
-      <div className="w-full lg:w-[52%] flex flex-col items-center justify-center p-4 sm:p-6 bg-[#F8FAFC]/50 relative overflow-hidden">
-         
-         <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="w-full max-w-[500px] bg-white rounded-2xl shadow-[0_15px_45px_rgba(15,23,42,0.06)] border border-slate-100 p-6 sm:p-8 relative z-10"
-         >
-           
-           <div className="mb-5 text-left">
-             <h2 className="text-[23px] font-black text-slate-900 tracking-tight flex items-center gap-2 mb-1">
-               Create Your Account <UserPlus className="w-5.5 h-5.5 text-brand" />
-             </h2>
-             <p className="text-[13.5px] font-medium text-slate-500">
-               Sign up and start growing your business with Razzia.
-             </p>
-           </div>
+      {/* Right Column (Multi-Step Form) */}
+      <div className="w-full lg:w-[54%] flex flex-col items-center justify-center p-6 sm:p-12 relative z-10 min-h-screen">
+        
+        {/* Mobile top logo */}
+        <motion.div 
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-center mb-8 lg:hidden select-none"
+        >
+          <img 
+            src="/logo.svg" 
+            alt="Razzia" 
+            className="h-14 w-auto object-contain"
+            style={{ filter: 'drop-shadow(0 2px 8px rgba(254,6,13,0.18))' }}
+          />
+        </motion.div>
 
-           <form onSubmit={handleSignup} className="space-y-3.5">
-             
-             {/* Row 1: Full Name & Business Name */}
-             <div className="grid grid-cols-2 gap-3.5">
-               <Input
-                 label="Full Name"
-                 value={fullName}
-                 onChange={(e) => setFullName(e.target.value)}
-                 placeholder="Full name"
-                 icon={<User className="w-[16px] h-[16px]" />}
-                 error={errors.fullName}
-                 className="h-11 text-[13px]"
-               />
-               <Input
-                 label="Business Name"
-                 value={businessName}
-                 onChange={(e) => setBusinessName(e.target.value)}
-                 placeholder="Business name"
-                 icon={<Store className="w-[16px] h-[16px]" />}
-                 error={errors.businessName}
-                 className="h-11 text-[13px]"
-               />
-             </div>
+        {/* Minimal Light Glass Form Container */}
+        <motion.div 
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-[460px] bg-white/80 border border-slate-100 rounded-3xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,23,42,0.04)] backdrop-blur-xl relative overflow-hidden"
+        >
+          {/* Stepper Progress bar at top of card */}
+          <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden absolute top-0 inset-x-0">
+            <motion.div 
+              animate={{ width: `${(step / 2) * 100}%` }}
+              transition={{ type: "spring", stiffness: 80 }}
+              className="h-full bg-brand" 
+            />
+          </div>
 
-             {/* Row 2: Email Address */}
-             <Input
-               label="Email Address"
-               type="email"
-               value={email}
-               onChange={(e) => setEmail(e.target.value)}
-               placeholder="Enter your email address"
-               icon={<Mail className="w-[16px] h-[16px]" />}
-               error={errors.email}
-               className="h-11 text-[13px]"
-             />
+          <AnimatePresence mode="wait">
+            {isSuccess ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-10 space-y-4"
+              >
+                <div className="flex justify-center">
+                  <motion.div 
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600"
+                  >
+                    <CheckCircle2 className="w-9 h-9" />
+                  </motion.div>
+                </div>
+                <h2 className="text-[23px] font-black text-slate-900">Registration Complete!</h2>
+                <p className="text-[13px] text-slate-500 max-w-xs mx-auto">
+                  Your merchant store account has been successfully configured. Redirecting you to login...
+                </p>
+              </motion.div>
+            ) : step === 1 ? (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+              >
+                <div className="text-left">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-bold text-brand uppercase tracking-wider">Step 1 of 2</span>
+                    <span className="text-[11.5px] font-semibold text-slate-400">Credentials</span>
+                  </div>
+                  <h2 className="text-[23px] font-black text-slate-900 tracking-tight">Create Merchant Account</h2>
+                </div>
 
-             {/* Row 3: Phone Number & Password */}
-             <div className="grid grid-cols-2 gap-3.5">
-               <Input
-                 label="Phone Number"
-                 type="tel"
-                 value={phone}
-                 onChange={(e) => setPhone(e.target.value)}
-                 placeholder="Phone number"
-                 icon={<Phone className="w-[16px] h-[16px]" />}
-                 error={errors.phone}
-                 className="h-11 text-[13px]"
-               />
-               <Input
-                 label="Password"
-                 type={showPassword ? 'text' : 'password'}
-                 value={password}
-                 onChange={(e) => setPassword(e.target.value)}
-                 placeholder="Password"
-                 icon={<Lock className="w-[16px] h-[16px]" />}
-                 error={errors.password}
-                 rightElement={
-                   <button
-                     type="button"
-                     onClick={() => setShowPassword(!showPassword)}
-                     className="text-slate-400 hover:text-slate-600 transition-colors"
-                   >
-                     {showPassword ? <EyeOff className="w-[16px] h-[16px]" /> : <Eye className="w-[16px] h-[16px]" />}
-                   </button>
-                 }
-                 className="h-11 text-[13px]"
-               />
-             </div>
+                <div className="space-y-4">
+                  {/* Full Name */}
+                  <div className="relative group text-left">
+                    <label className={`absolute left-4 transition-all duration-200 pointer-events-none font-bold ${focusedField === 'fullName' || fullName ? 'top-2 text-[10px] text-brand uppercase' : 'top-3.5 text-[13px] text-slate-450'}`}>Full Name</label>
+                    <input 
+                      type="text" 
+                      value={fullName}
+                      onFocus={() => setFocusedField('fullName')}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className={`w-full bg-slate-50/50 hover:bg-slate-50/80 border rounded-2xl px-4 pb-1.5 pt-5 text-[13px] text-slate-900 outline-none transition-all ${focusedField === 'fullName' ? 'border-brand/40 bg-white ring-4 ring-brand/4' : errors.fullName ? 'border-brand/50' : 'border-slate-150'}`}
+                    />
+                  </div>
 
-             {/* Row 4: Confirm Password */}
-             <Input
-               label="Confirm Password"
-               type={showConfirmPassword ? 'text' : 'password'}
-               value={confirmPassword}
-               onChange={(e) => setConfirmPassword(e.target.value)}
-               placeholder="Confirm your password"
-               icon={<Lock className="w-[16px] h-[16px]" />}
-               error={errors.confirmPassword}
-               rightElement={
-                 <button
-                   type="button"
-                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                   className="text-slate-400 hover:text-slate-600 transition-colors"
-                 >
-                   {showConfirmPassword ? <EyeOff className="w-[16px] h-[16px]" /> : <Eye className="w-[16px] h-[16px]" />}
-                 </button>
-               }
-               className="h-11 text-[13px]"
-             />
+                  {/* Email */}
+                  <div className="relative group text-left">
+                    <label className={`absolute left-4 transition-all duration-200 pointer-events-none font-bold ${focusedField === 'email' || email ? 'top-2 text-[10px] text-brand uppercase' : 'top-3.5 text-[13px] text-slate-450'}`}>Email Address</label>
+                    <input 
+                      type="email" 
+                      value={email}
+                      onFocus={() => setFocusedField('email')}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full bg-slate-50/50 hover:bg-slate-50/80 border rounded-2xl px-4 pb-1.5 pt-5 text-[13px] text-slate-900 outline-none transition-all ${focusedField === 'email' ? 'border-brand/40 bg-white ring-4 ring-brand/4' : errors.email ? 'border-brand/50' : 'border-slate-150'}`}
+                    />
+                  </div>
 
-             {/* Terms & Conditions Checkbox */}
-             <div>
-               <Checkbox
-                 checked={agreeTerms}
-                 onChange={(e) => setAgreeTerms(e.target.checked)}
-                 error={!!errors.agreeTerms}
-                 label={
-                   <>
-                     I agree to the <Link to="#" className="text-brand hover:underline">Terms</Link> & <Link to="#" className="text-brand hover:underline">Privacy Policy</Link>
-                   </>
-                 }
-                 className="mt-1"
-               />
-               {errors.agreeTerms && (
-                 <span className="text-[11.5px] font-semibold text-brand block mt-1 text-left">
-                   {errors.agreeTerms}
-                 </span>
-               )}
-             </div>
+                  {/* Phone & Password Row */}
+                  <div className="grid grid-cols-2 gap-3.5">
+                    <div className="relative group text-left">
+                      <label className={`absolute left-4 transition-all duration-200 pointer-events-none font-bold ${focusedField === 'phone' || phone ? 'top-2 text-[10px] text-brand uppercase' : 'top-3.5 text-[13px] text-slate-450'}`}>Phone</label>
+                      <input 
+                        type="tel" 
+                        value={phone}
+                        onFocus={() => setFocusedField('phone')}
+                        onBlur={() => setFocusedField(null)}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className={`w-full bg-slate-50/50 hover:bg-slate-50/80 border rounded-2xl px-4 pb-1.5 pt-5 text-[13px] text-slate-900 outline-none transition-all ${focusedField === 'phone' ? 'border-brand/40 bg-white ring-4 ring-brand/4' : errors.phone ? 'border-brand/50' : 'border-slate-150'}`}
+                      />
+                    </div>
+                    <div className="relative group text-left">
+                      <label className={`absolute left-4 transition-all duration-200 pointer-events-none font-bold ${focusedField === 'password' || password ? 'top-2 text-[10px] text-brand uppercase' : 'top-3.5 text-[13px] text-slate-450'}`}>Password</label>
+                      <input 
+                        type="password" 
+                        value={password}
+                        onFocus={() => setFocusedField('password')}
+                        onBlur={() => setFocusedField(null)}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className={`w-full bg-slate-50/50 hover:bg-slate-50/80 border rounded-2xl px-4 pb-1.5 pt-5 text-[13px] text-slate-900 outline-none transition-all ${focusedField === 'password' ? 'border-brand/40 bg-white ring-4 ring-brand/4' : errors.password ? 'border-brand/50' : 'border-slate-150'}`}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-             {/* Create Account Button */}
-             <Button type="submit" isLoading={isLoading} className="h-11.5 text-[14px] mt-2">
-               Create Account
-             </Button>
+                {/* Step 1 Progressive CTA */}
+                <motion.button 
+                  onClick={handleNext}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  style={{
+                    background: step1BtnGradient,
+                    boxShadow: step1BtnShadow,
+                    transition: 'background 400ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                  className="w-full h-11.5 text-white font-bold rounded-2xl text-[13.5px] flex items-center justify-center gap-2 mt-4"
+                >
+                  Continue <ArrowRight className="w-4 h-4" />
+                </motion.button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-5"
+              >
+                <div className="text-left">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-[10px] font-bold text-brand uppercase tracking-wider">Step 2 of 2</span>
+                    <span className="text-[11.5px] font-semibold text-slate-400">Business Details</span>
+                  </div>
+                  <h2 className="text-[23px] font-black text-slate-900 tracking-tight">Configure Store</h2>
+                </div>
 
-           </form>
+                <div className="space-y-4">
+                  {/* Business Name */}
+                  <div className="relative group text-left">
+                    <label className={`absolute left-4 transition-all duration-200 pointer-events-none font-bold ${focusedField === 'businessName' || businessName ? 'top-2 text-[10px] text-brand uppercase' : 'top-3.5 text-[13px] text-slate-450'}`}>Business Name</label>
+                    <input 
+                      type="text" 
+                      value={businessName}
+                      onFocus={() => setFocusedField('businessName')}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      className={`w-full bg-slate-50/50 hover:bg-slate-50/80 border rounded-2xl px-4 pb-1.5 pt-5 text-[13px] text-slate-900 outline-none transition-all ${focusedField === 'businessName' ? 'border-brand/40 bg-white ring-4 ring-brand/4' : errors.businessName ? 'border-brand/50' : 'border-slate-150'}`}
+                    />
+                  </div>
 
-           {/* Divider */}
-           <div className="relative flex items-center justify-center py-3">
-             <div className="absolute inset-x-0 h-[1px] bg-slate-100" />
-             <span className="relative bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-               OR
-             </span>
-           </div>
+                  {/* Store Category Select Grid */}
+                  <div className="text-left">
+                    <label className="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-2 block">Store Category</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'fashion', label: '👕 Fashion' },
+                        { id: 'electronics', label: '⚡ Tech' },
+                        { id: 'beauty', label: '💄 Beauty' }
+                      ].map((cat) => (
+                        <div 
+                          key={cat.id}
+                          onClick={() => setStoreCategory(cat.id)}
+                          className={`py-2 px-2.5 rounded-xl border text-[12px] font-bold text-center cursor-pointer transition-all duration-250 select-none
+                            ${storeCategory === cat.id 
+                              ? 'bg-brand/10 border-brand text-brand' 
+                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                        >
+                          {cat.label}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-           {/* Social Signups */}
-           <div className="grid grid-cols-2 gap-3">
-             <Button variant="outline" className="h-10.5 gap-2 text-[12.5px]">
-               <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
-                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-               </svg>
-               Google
-             </Button>
-             <Button variant="outline" className="h-10.5 gap-2 text-[12.5px]">
-               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                 <path d="M16.365 7.143c.913-1.12 1.53-2.723 1.363-4.326-1.385.056-3.084.93-4.032 2.05-.758.88-1.493 2.518-1.296 4.09 1.542.12 3.048-.696 3.965-1.814zm4.496 11.23c-1.026 1.488-2.092 2.973-3.702 3.003-1.57.027-2.08-.946-3.876-.946-1.795 0-2.35.918-3.875.975-1.576.055-2.825-1.616-3.854-3.107-2.107-3.04-3.72-8.583-1.57-12.35 1.066-1.865 2.946-3.054 4.974-3.08 1.52-.028 2.955 1.042 3.876 1.042.92 0 2.66-1.293 4.49-1.106 1.94.195 3.393 1.037 4.364 2.474-3.66 2.228-3.067 7.4.453 8.784-.875 2.18-2.22 4.316-4.28 7.315z" />
-               </svg>
-               Apple
-             </Button>
-           </div>
+                  {/* Terms */}
+                  <div className="flex items-start gap-2.5 pt-1 text-left">
+                    <input 
+                      type="checkbox" 
+                      checked={agreeTerms} 
+                      onChange={(e) => setAgreeTerms(e.target.checked)} 
+                      className="w-3.5 h-3.5 mt-0.5 rounded border-slate-200 text-brand focus:ring-0" 
+                    />
+                    <span className="text-[11.5px] font-semibold text-slate-500">
+                      I accept Razzia's <Link to="#" className="text-brand hover:underline">Terms of Service</Link> & <Link to="#" className="text-brand hover:underline">Privacy Policy</Link>
+                    </span>
+                  </div>
+                  {errors.agreeTerms && (
+                    <p className="text-[11px] font-bold text-brand text-left">{errors.agreeTerms}</p>
+                  )}
+                </div>
 
-           {/* Already have an account? */}
-           <div className="mt-4 text-center">
-             <p className="text-[13.5px] font-medium text-slate-500">
-               Already have an account? <Link to="/login" className="text-brand font-bold hover:underline">Sign In</Link>
-             </p>
-           </div>
+                <div className="flex gap-3 mt-4">
+                  <button 
+                    onClick={handlePrev}
+                    className="w-24 h-11.5 rounded-2xl border border-slate-200 hover:bg-slate-50 text-[13px] font-bold transition-colors flex items-center justify-center gap-1.5 text-slate-650"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                  </button>
+                  {/* Step 2 Progressive CTA */}
+                  <motion.button 
+                    onClick={handleSignupSubmit}
+                    disabled={isLoading}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    style={{
+                      background: isLoading ? '#FE060D' : step2BtnGradient,
+                      boxShadow: step2BtnShadow,
+                      transition: 'background 400ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 400ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                    className="flex-1 h-11.5 text-white font-bold rounded-2xl text-[13.5px] flex items-center justify-center gap-2 disabled:opacity-75"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        Launch Store <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-         </motion.div>
+          {/* Direct link switch back */}
+          {!isSuccess && (
+            <div className="mt-5 pt-4 border-t border-slate-100 text-center">
+              <p className="text-[13px] font-semibold text-slate-500">
+                Already have an account? <Link to="/login" className="text-brand font-bold hover:underline">Sign In</Link>
+              </p>
+            </div>
+          )}
 
-         {/* Animated Wave Pattern */}
-         <div className="absolute bottom-0 right-0 pointer-events-none opacity-[0.03] text-brand">
-           <svg width="400" height="400" viewBox="0 0 100 100" fill="currentColor">
-              <path d="M0,50 Q25,25 50,50 T100,50 L100,100 L0,100 Z" />
-           </svg>
-         </div>
+        </motion.div>
+
+        {/* Premium Scooter Delivery Animation (Mobile Only) */}
+        <div className="w-full max-w-[420px] mt-8 lg:hidden relative h-12 overflow-hidden flex items-center shrink-0">
+          <div className="absolute inset-x-0 bottom-3 h-[1px] bg-gradient-to-r from-transparent via-slate-100 to-transparent" />
+          <motion.div 
+            animate={{ x: [0, -60] }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            className="absolute inset-x-0 h-1.5 bottom-3.5 flex gap-12 opacity-30"
+            style={{ width: '200%' }}
+          >
+            {Array.from({ length: 6 }).map((_, i) => (
+              <span key={i} className="w-8 h-[1px] bg-brand/35 shrink-0" />
+            ))}
+          </motion.div>
+          <motion.div 
+            animate={{ 
+              x: ['-20%', '120%'],
+              y: [0, -2, 0, -2, 0] 
+            }}
+            transition={{ repeat: Infinity, duration: 7, ease: "linear" }}
+            className="absolute bottom-1.5 flex items-center gap-1.5 z-10"
+          >
+            {/* Scooter Exhaust Smoke */}
+            <div className="absolute left-[-8px] bottom-1 flex gap-1 items-end pointer-events-none">
+              <motion.span 
+                animate={{ scale: [0.5, 1.8], opacity: [0.6, 0], x: [-5, -15] }}
+                transition={{ repeat: Infinity, duration: 0.8 }}
+                className="w-1.5 h-1.5 bg-brand/20 rounded-full shrink-0" 
+              />
+            </div>
+            <svg viewBox="0 0 24 24" width="28" height="28" className="text-brand fill-brand shrink-0">
+              <path d="M19 15h-1.35a3 3 0 0 0-5.3 0H9.65a3 3 0 0 0-5.3 0H3v-2h2.2l1.6-4.8A2 2 0 0 1 8.7 7H13v2H8.7l-1 3h7.68c.5 0 .95-.3 1.14-.76l1.2-2.8a2 2 0 0 1 1.83-1.21L21 9v2h-1.45l-1.3 3H19zm-12 2a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm9 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
+            </svg>
+            <div className="w-3.5 h-3.5 bg-amber-400 border border-amber-500 rounded shadow-xs -ml-3 mb-3 flex items-center justify-center shrink-0">
+              <span className="text-[7px] text-amber-900 font-bold">R</span>
+            </div>
+          </motion.div>
+        </div>
 
       </div>
 
