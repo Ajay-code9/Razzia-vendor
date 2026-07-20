@@ -236,7 +236,10 @@ export default function LoginPage() {
             <Flame className="w-3.5 h-3.5 text-[#FE060D]" />
             <span>Powering modern commerce</span>
           </div>
-        </div      {/* RIGHT COLUMN: Premium Clean Card Login Form */}
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Premium Clean Card Login Form */}
       <div className="flex-1 lg:w-[50%] h-full flex flex-col justify-between pt-10 pb-6 px-12 xl:pt-12 xl:pb-8 xl:px-16 relative z-10 overflow-hidden">
         
         {/* Top Header bar */}
