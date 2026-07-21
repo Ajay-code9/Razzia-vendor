@@ -17,6 +17,7 @@ import {
   UserCircle
 } from 'lucide-react';
 import { loadNotifications, getUnreadCount } from '../../utils/notificationsData';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const unreadCount = useMemo(() => getUnreadCount(loadNotifications()), []);
 
   const menuItems = [
@@ -103,7 +105,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Footer/Logout */}
         <div className="p-4 border-t border-slate-50 mt-auto shrink-0">
           <button 
-            onClick={() => navigate('/login')}
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
             className="flex items-center gap-3.5 w-full px-3 py-2.5 text-[14.5px] font-semibold text-slate-500 hover:text-brand hover:bg-slate-50 rounded-lg transition-all duration-200 cursor-pointer"
           >
             <LogOut className="w-5 h-5 shrink-0" />

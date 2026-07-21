@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, BadgeCheck, Package, ShoppingBag, BarChart3, Star, User, Store, Wallet, LifeBuoy, BellRing, Settings, Moon, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 export default function HeaderProfile() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -165,7 +167,13 @@ export default function HeaderProfile() {
                      <div className="absolute left-0.5 top-0.5 w-3 h-3 bg-white rounded-full shadow-sm" />
                   </div>
                 </button>
-                <button onClick={() => handleNavigate('/login')} className="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-lg hover:bg-red-50 transition-colors text-left group">
+                <button 
+                  onClick={() => {
+                    logout();
+                    handleNavigate('/login');
+                  }} 
+                  className="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-lg hover:bg-red-50 transition-colors text-left group"
+                >
                   <LogOut className="w-[18px] h-[18px] text-red-400 group-hover:text-red-600 transition-colors" />
                   <span className="text-[13.5px] font-bold text-red-500 group-hover:text-red-600 transition-colors">Logout</span>
                 </button>
